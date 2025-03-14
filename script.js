@@ -4,35 +4,52 @@ const API_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
 let chatHistory = [];
-
+const sendButton = document.getElementById("send-button");
 // Ajout du contexte d'expert en maintenance
 const EXPERT_CONTEXT = `Tu es un expert en maintenance informatique. 
 Tu dois :
 - Répondre de manière professionnelle et précise
-- Répondre en maximum 100 mots
-- Donner des solutions étape par étape de façon concise
+- Répondre en maximum 150 mots
+- tu peux utiliser des emojis pour rendre la conversation plus agréable
+- Donner des solutions étape par étape de façon concise avec des listes à puces ou numérotées
 - Expliquer les termes techniques si nécessaire
 - Proposer des solutions alternatives si possible
 - Donner des conseils de prévention
 - Rester focalisé sur les problèmes informatiques
 - Demander des précisions si nécessaire pour mieux diagnostiquer
 - Utiliser un langage technique mais compréhensible
-- Si la question n'est pas liée à l'informatique, réponds poliment que tu es spécialisé en maintenance informatique
-- Si tu ne peux pas résoudre un problème, recommande de contacter un professionnel en précisant pourquoi.`;
+- Si la question n'est pas liée à l'informatique, réponds poliment que tu es spécialisé en maintenance informatique`;
 
 function addMessageToChat(message, isUser = false) {
   const chatContainer = document.getElementById("chat-container");
   const messageDiv = document.createElement("div");
-  messageDiv.className = `flex ${isUser ? "justify-end" : "justify-start"}`;
 
-  messageDiv.innerHTML = `
-        <div class="max-w-[70%] ${
-          isUser ? "bg-blue-500 text-white" : "bg-gray-200"
-        } rounded-lg px-4 py-2">
-            ${message}
-        </div>
-    `;
+  // Création de la bulle de message avec les nouvelles classes
+  const messageContainer = document.createElement("div");
+  messageContainer.className = `message ${
+    isUser ? "user-message" : "bot-message"
+  }`;
 
+  // Utiliser innerHTML avec marked pour le formatage Markdown (seulement pour les messages du bot)
+  if (isUser) {
+    messageContainer.textContent = message;
+  } else {
+    // Configuration de marked pour la sécurité
+    marked.setOptions({
+      breaks: true, // Permet les retours à la ligne avec un seul retour chariot
+      sanitize: true, // Nettoie le HTML dangereux
+    });
+    messageContainer.innerHTML = marked.parse(message);
+  }
+
+  // Ajout du conteneur du message
+  const wrapper = document.createElement("div");
+  wrapper.className = `message-wrapper ${
+    isUser ? "user-wrapper" : "bot-wrapper"
+  }`;
+  wrapper.appendChild(messageContainer);
+
+  messageDiv.appendChild(wrapper);
   chatContainer.appendChild(messageDiv);
   chatContainer.scrollTop = chatContainer.scrollHeight;
 }
@@ -103,5 +120,4 @@ document.getElementById("user-input").addEventListener("keypress", (e) => {
   }
 });
 
-// Rendre sendMessage accessible globalement
-window.sendMessage = sendMessage;
+sendButton.addEventListener("click", sendMessage);
